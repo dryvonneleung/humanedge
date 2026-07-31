@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Human Advantage Assessment</title>
+<meta name="description" content="A strengths assessment built around one question: how do you naturally create value in the world?">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="topbar" id="topbar" hidden>
+  <div class="topbar-inner">
+    <div class="brand">Human Advantage <span>Assessment</span></div>
+    <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-label" id="progressLabel">0%</div>
+  </div>
+</div>
+
+<main>
+
+<!-- ============ LANDING ============ -->
+<section class="screen active" id="screen-intro">
+  <div class="wrap">
+    <div class="eyebrow">Human Advantage Assessment · pilot</div>
+    <h1>What is your edge?</h1>
+    <p class="lede">Most strengths tests sort people into job types. This one starts somewhere broader.</p>
+
+    <div class="hero-q">How do you naturally create value in the world?</div>
+
+    <p>Nine domains, mapped across thinking, creating, connecting and performing. A consultant, an athlete, a nurse, a gamer, a singer, a researcher and a quiet craftsperson should all be able to find themselves in the result — because value gets created in all of those ways.</p>
+
+    <p>The assessment measures two things separately: what you are <strong>good at</strong>, and what <strong>energises you</strong>. Those are not the same, and the gap between them usually explains more about someone's career than either one alone.</p>
+
+    <div id="domainMap"></div>
+
+    <div class="notes">
+      <ul>
+        <li><strong>Three parts, about 8–10 minutes.</strong> 27 rating items, 9 energy ratings, and 4 short reflection questions.</li>
+        <li><strong>Answer as you actually are</strong>, across your whole life — not just your current job. Your instinct is usually more accurate than a considered answer.</li>
+        <li><strong>Nothing is sent anywhere.</strong> Everything runs in your browser and is saved only on this device. You can download your own results at the end.</li>
+        <li><strong>AI is in the interpretation, not the framework.</strong> The domains are about human value creation; where AI helps or doesn't is discussed once you have your profile.</li>
+      </ul>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn" id="startBtn">Begin assessment</button>
+      <button class="btn btn-ghost" id="resumeBtn" hidden>Resume where I left off</button>
+    </div>
+    <p class="kbd-hint">Tip: on the rating screens you can press <span class="kbd">1</span>–<span class="kbd">5</span> to answer and move to the next item.</p>
+  </div>
+</section>
+
+<!-- ============ PART 1 — ITEM PAGES (generated) ============ -->
+<section class="screen" id="screen-items">
+  <div class="wrap">
+    <div class="section-intro" id="itemsIntro">
+      <div class="eyebrow">Part 1 of 3 · Strengths</div>
+      <p><strong>Rate how well each statement describes you.</strong> The statements are deliberately mixed up rather than grouped by theme, so answer each one on its own terms.</p>
+      <p style="margin-bottom:0">There are no good or bad answers here. Overrating yourself just produces a flatter, less useful profile.</p>
+    </div>
+    <div id="itemsHost"></div>
+    <div class="validation" id="itemsValidation" hidden></div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" id="itemsBack">Back</button>
+      <div class="spacer"></div>
+      <button class="btn" id="itemsNext">Continue</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PART 2 — ENERGY ============ -->
+<section class="screen" id="screen-energy">
+  <div class="wrap">
+    <div class="section-intro">
+      <div class="eyebrow">Part 2 of 3 · Energy</div>
+      <p><strong>Now the other half of the picture.</strong> For each kind of activity, how does it feel to do it — regardless of how good you are at it?</p>
+      <p style="margin-bottom:0">Someone can be excellent at coordinating people and quietly hate it. Someone else is equally good and loves it. Those two people need completely different advice, and this is the part that tells them apart.</p>
+    </div>
+    <div id="energyHost"></div>
+    <div class="validation" id="energyValidation" hidden></div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" id="energyBack">Back</button>
+      <div class="spacer"></div>
+      <button class="btn" id="energyNext">Continue</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PART 3 — REFLECTION ============ -->
+<section class="screen" id="screen-reflect">
+  <div class="wrap">
+    <div class="section-intro">
+      <div class="eyebrow">Part 3 of 3 · Hidden strengths</div>
+      <p><strong>These aren't scored.</strong> They often surface the strengths a rating scale misses — the ones you've stopped noticing because they come easily.</p>
+      <p style="margin-bottom:0">They appear in your report as written, next to your scored profile. Skip any you'd rather not answer.</p>
+    </div>
+
+    <div class="item">
+      <div class="item-num">HS1</div>
+      <div class="item-text">When people seek your help, what are they most commonly seeking?</div>
+      <div class="item-sub">Choose up to three.</div>
+      <div class="check-grid" id="hs1Host"></div>
+      <div class="count-hint" id="hs1Count">0 of 3 selected</div>
+      <div id="hs1OtherWrap" hidden style="margin-top:12px">
+        <input type="text" id="hs1Other" placeholder="Something else — what is it?" maxlength="120">
+      </div>
+    </div>
+
+    <div id="openHost"></div>
+
+    <div class="validation" id="reflectValidation" hidden></div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" id="reflectBack">Back</button>
+      <div class="spacer"></div>
+      <button class="btn" id="reflectNext">See my profile</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ RESULTS ============ -->
+<section class="screen" id="screen-results">
+  <div class="wrap-wide" id="resultsHost"></div>
+</section>
+
+</main>
+
+<footer class="site">
+  <div class="wrap-wide">
+    <p style="margin-bottom:.4em">Human Advantage Assessment — pilot instrument, version <span id="verLabel"></span>. 27 scored items across 9 proposed domains, plus a separate energy measure.</p>
+    <p style="margin:0">This is a self-reflection tool, not a validated psychometric test. The 9-domain structure is a hypothesis awaiting factor analysis on a real sample.</p>
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
