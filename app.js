@@ -7,12 +7,15 @@
 
   const STORE_KEY = "haa-response-" + HAA_VERSION;
   const ITEMS_PER_PAGE = 6;
-  const TOTAL_QUESTIONS = ITEMS.length + DOMAIN_ORDER.length; // 27 + 9
+  const TOTAL_QUESTIONS = ITEMS.length + DOMAIN_ORDER.length; // 36 + 12
 
+  /* Chart labels. Shorter than the full domain names, which do not fit on a
+   * 12-axis radar. */
   const SHORT_NAME = {
+    OB: "Observation", SA: "Signal Awareness", HU: "Human Understanding",
     SM: "Sense-Making", IN: "Integration", J: "Judgment",
-    IV: "Innovation", C: "Craftsmanship", E: "Expression",
-    HU: "Human Understanding", M: "Mobilization", AP: "Adaptability"
+    IV: "Innovation", E: "Expression", C: "Craftsmanship",
+    M: "Mobilization", AD: "Adaptability", PP: "Performance"
   };
 
   const state = {
@@ -46,10 +49,16 @@
     ));
   }
   function mean(a) { return a.reduce((x, y) => x + y, 0) / a.length; }
+  /* n choose k — how many distinct signature combinations the framework allows */
+  function comboCount(n, k) {
+    let r = 1;
+    for (let i = 0; i < k; i++) r = r * (n - i) / (i + 1);
+    return Math.round(r);
+  }
   function pct(m) { return Math.round(((m - 1) / 4) * 1000) / 10; } // 1..5 -> 0..100
   function catColor(cat) { return "var(--" + cat + ")"; }
   function catColorHex(cat) {
-    return { thinking: "#3d6b9c", creating: "#b4693a", connecting: "#6b4c8a", performing: "#2f7a5e" }[cat];
+    return { notice: "#3d6b9c", understand: "#6b4c8a", create: "#b4693a", act: "#2f7a5e" }[cat];
   }
   function toast(msg) {
     const t = $("#toast");
@@ -98,8 +107,8 @@
   /* ---------------- landing: domain map ---------------- */
   function renderDomainMap() {
     const host = $("#domainMap");
-    Object.keys(CATEGORIES).forEach(catKey => {
-      const cat = CATEGORIES[catKey];
+    Object.keys(PILLARS).forEach(catKey => {
+      const cat = PILLARS[catKey];
       const block = el("div", "cat-block");
       block.innerHTML =
         '<div class="cat-head">' +
@@ -108,7 +117,7 @@
           '<span class="cat-blurb">' + esc(cat.blurb) + '</span>' +
         '</div>';
       const grid = el("div", "domain-grid");
-      DOMAIN_ORDER.filter(k => DOMAINS[k].category === catKey).forEach(k => {
+      DOMAIN_ORDER.filter(k => DOMAINS[k].pillar === catKey).forEach(k => {
         const d = DOMAINS[k];
         grid.appendChild(el("div", "dcard",
           "<b>" + esc(d.name) + "</b><small>" + esc(d.short) + "</small>"));
@@ -201,8 +210,8 @@
       card.dataset.item = "E_" + k;
       if (state.energy[k]) card.classList.add("answered");
       card.innerHTML =
-        '<div class="item-num" style="color:' + catColor(d.category) + '">' +
-          esc(CATEGORIES[d.category].label) + ' · ' + (i + 1) + ' of 9</div>' +
+        '<div class="item-num" style="color:' + catColor(d.pillar) + '">' +
+          esc(PILLARS[d.pillar].label) + ' · ' + (i + 1) + ' of ' + DOMAIN_ORDER.length + '</div>' +
         '<div class="item-text">' + esc(ENERGY_PROMPTS[k]) + '</div>' +
         '<div class="item-sub">How does doing this normally leave you feeling?</div>';
       card.appendChild(buildScale("energy-" + k, ENERGY_SCALE, state.energy[k], v => {
@@ -290,7 +299,7 @@
       return {
         key: k,
         name: DOMAINS[k].name,
-        category: DOMAINS[k].category,
+        pillar: DOMAINS[k].pillar,
         mean: m,
         pct: pct(m),
         energy: state.energy[k] || 3,
@@ -315,12 +324,13 @@
       return DOMAIN_ORDER.indexOf(a.key) - DOMAIN_ORDER.indexOf(b.key);
     });
 
+    // Top 3 lead the report; the remaining 9 split into supporting and quieter.
     const signature = ranked.slice(0, 3);
-    const supporting = ranked.slice(3, 6);
-    const quieter = ranked.slice(6);
+    const supporting = ranked.slice(3, 9);
+    const quieter = ranked.slice(9);
 
     // spread tells us how differentiated the profile is
-    const spread = ranked[0].pct - ranked[8].pct;
+    const spread = ranked[0].pct - ranked[ranked.length - 1].pct;
     const energyRange = Math.max.apply(null, domains.map(d => d.energy)) -
                         Math.min.apply(null, domains.map(d => d.energy));
     // With no variance the top three are decided by tie-break, not by the
@@ -331,15 +341,7 @@
       : [];
 
     const archetypes = ARCHETYPES.map(a => {
-      let base;
-      if (a.special === "quiet") {
-        const c = domains.find(d => d.key === "C").pct;
-        const sm = domains.find(d => d.key === "SM").pct;
-        const independence = 100 - domains.find(d => d.key === "M").pct;
-        base = mean([c, sm, independence]);
-      } else {
-        base = mean(a.domains.map(k => domains.find(d => d.key === k).pct));
-      }
+      const base = mean(a.domains.map(k => domains.find(d => d.key === k).pct));
       const sigKeys = signature.map(d => d.key);
       const overlap = a.domains.filter(k => sigKeys.indexOf(k) !== -1).length;
       return { ...a, base: base, overlap: overlap, fit: base + overlap * 5 };
@@ -383,7 +385,8 @@
       '<div class="rsection">' +
         '<h2>Your combination</h2>' +
         '<p class="lede">You create value because ' + esc(comboLine) + '.</p>' +
-        '<p>Individually, each of those is common. The combination is where your edge actually lives: there are 84 possible three-domain signatures in this framework, and ' +
+        '<p>Individually, each of those is common. The combination is where your edge actually lives: there are ' +
+        comboCount(DOMAIN_ORDER.length, 3) + ' possible three-domain signatures in this framework, and ' +
         '<strong>' + esc(s.signature.map(d => d.name).join(" + ")) + '</strong> is yours. ' +
         'Most people are hired for one of their three and then valued for the overlap.</p>' +
         profileShapeNote(s) +
@@ -410,7 +413,7 @@
     s.supporting.forEach((d, i) => {
       html +=
         '<div class="compact-row">' +
-          '<span class="dot" style="background:' + catColor(d.category) + '"></span>' +
+          '<span class="dot" style="background:' + catColor(d.pillar) + '"></span>' +
           '<span class="nm">' + esc(d.name) + '</span>' +
           '<span class="ds">' + esc(DOMAINS[d.key].short) + '</span>' +
           energyTag(d) +
@@ -425,7 +428,7 @@
       html +=
         '<div class="strength-card">' +
           '<div class="sc-head">' +
-            '<span class="dot" style="background:' + catColor(d.category) + '"></span>' +
+            '<span class="dot" style="background:' + catColor(d.pillar) + '"></span>' +
             '<span class="sc-name">' + esc(d.name) + '</span>' +
             energyTag(d) +
           '</div>' +
@@ -440,9 +443,16 @@
     html +=
       '<div class="rsection">' +
         '<h2>Strength × energy</h2>' +
-        '<p class="rsection-note">The most useful screen in the report. Both lines sit at your own averages, so this compares your nine domains against each other, not against other people.</p>' +
+        '<p class="rsection-note">The most useful screen in the report. Both lines sit at your own averages, so this compares your twelve domains against each other, not against other people.</p>' +
         '<div class="viz">' + scatterSvg(s) + '</div>' +
         quadrants(s) +
+        '<div class="reflect-card" style="margin-top:18px">' +
+          '<div class="q">The third factor: opportunity</div>' +
+          '<div class="a">Strength × Energy × Opportunity is the full equation, and this assessment only measures ' +
+          'the first two. Opportunity is where your combination is actually needed and valued, and it depends on your ' +
+          'field, your organisation and your timing rather than on anything you could answer in a questionnaire. ' +
+          'Take your core edge above and ask where it is currently scarce. That question is the one worth sitting with.</div>' +
+        '</div>' +
       '</div>';
 
     /* AI interpretation */
@@ -454,7 +464,7 @@
       html +=
         '<div class="strength-card">' +
           '<div class="sc-head">' +
-            '<span class="dot" style="background:' + catColor(d.category) + '"></span>' +
+            '<span class="dot" style="background:' + catColor(d.pillar) + '"></span>' +
             '<span class="sc-name">' + esc(d.name) + '</span>' +
           '</div>' +
           '<div class="ai-note" style="border-top:0;padding-top:4px;margin-top:6px">' +
@@ -552,7 +562,7 @@
   function profileShapeNote(s) {
     let note = "";
     if (s.spread < 20) {
-      note = "Your nine scores sit close together, which usually means one of two things: you are genuinely broad, " +
+      note = "Your twelve scores sit close together, which usually means one of two things: you are genuinely broad, " +
         "or you rated yourself consistently across the board. Either way, the ordering below matters more than the sizes — " +
         "and the energy section will separate your domains more sharply than the strength scores did.";
     } else if (s.spread > 45) {
@@ -580,7 +590,7 @@
       '<div class="sc-head">' +
         '<span class="sc-rank">' + rank + '</span>' +
         '<span class="sc-name">' + esc(d.name) + '</span>' +
-        '<span class="sc-cat" style="color:' + catColor(d.category) + '">' + esc(CATEGORIES[d.category].label) + '</span>' +
+        '<span class="sc-cat" style="color:' + catColor(d.pillar) + '">' + esc(PILLARS[d.pillar].label) + '</span>' +
         energyTag(d) +
       '</div>' +
       '<p class="sc-body">' + esc(DOMAINS[d.key].long) + '</p>' +
@@ -591,7 +601,7 @@
 
   function meter(d) {
     return '<div class="meter">' +
-      '<div class="meter-track"><div class="meter-fill" data-w="' + d.pct + '" style="width:0;background:' + catColor(d.category) + '"></div></div>' +
+      '<div class="meter-track"><div class="meter-fill" data-w="' + d.pct + '" style="width:0;background:' + catColor(d.pillar) + '"></div></div>' +
       '<div class="meter-val">' + d.pct.toFixed(0) + ' / 100</div>' +
     '</div>';
   }
@@ -659,12 +669,12 @@
       const lines = words.length > 1 && SHORT_NAME[k].length > 13 ? words : [SHORT_NAME[k]];
       const dy0 = -(lines.length - 1) * 6;
       g += '<text x="' + lx.toFixed(1) + '" y="' + (ly + dy0).toFixed(1) + '" text-anchor="' + anchor +
-           '" font-size="11.5" font-weight="600" fill="' + catColorHex(d.category) + '">' +
+           '" font-size="11.5" font-weight="600" fill="' + catColorHex(d.pillar) + '">' +
            lines.map((w, li) => '<tspan x="' + lx.toFixed(1) + '" dy="' + (li === 0 ? 0 : 13) + '">' + esc(w) + '</tspan>').join("") +
            '</text>';
     });
 
-    return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Radar chart of nine domain scores and energy ratings">' +
+    return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Radar chart of twelve domain scores and energy ratings">' +
       g + '</svg>' +
       '<div class="legend">' +
         '<span><i style="background:#2f5d50"></i>Capability</span>' +
@@ -705,25 +715,40 @@
     g += '<text x="16" y="' + (m.t + ph / 2) + '" text-anchor="middle" font-size="12" font-weight="600" fill="#4a4843" transform="rotate(-90 16 ' + (m.t + ph / 2) + ')">Energy →</text>';
 
     // points, nudged apart vertically when they collide
-    const placed = [];
+    const placed = [];   // label boxes already positioned
+    const dots = [];     // dot centres already drawn
     DOMAIN_ORDER.map(k => s.byKey(k)).sort((a, b) => b.pct - a.pct).forEach(d => {
-      const x = xOf(d.pct), y = yOf(d.energy);
+      let x = xOf(d.pct), y = yOf(d.energy);
+
+      // Domains with identical scores land on the exact same pixel, hiding all
+      // but the last dot. Nudge duplicates by a few pixels so each is visible.
+      let jitter = 0;
+      while (dots.some(p => Math.abs(p.x - x) < 5 && Math.abs(p.y - y) < 5) && jitter < 6) {
+        jitter++;
+        x = xOf(d.pct) + (jitter % 2 ? 1 : -1) * Math.ceil(jitter / 2) * 7;
+        y = yOf(d.energy) + (jitter % 2 ? -1 : 1) * Math.ceil(jitter / 2) * 4;
+      }
+      dots.push({ x: x, y: y });
+
       // Label above the dot by default; below it when the dot is near the top.
       const below = y - 11 < m.t + 12;
       let ly = below ? y + 17 : y - 11;
       const step = below ? 14 : -14;
       let guard = 0;
-      while (placed.some(p => Math.abs(p.x - x) < 96 && Math.abs(p.y - ly) < 13) && guard < 6) {
+      while (placed.some(p => Math.abs(p.x - x) < 96 && Math.abs(p.y - ly) < 13) && guard < 8) {
         ly += step; guard++;
       }
       ly = Math.max(m.t + 12, Math.min(m.t + ph - 6, ly));
       placed.push({ x: x, y: ly });
-      const col = catColorHex(d.category);
+
+      const col = catColorHex(d.pillar);
       g += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="6" fill="' + col + '" fill-opacity=".85" stroke="#fff" stroke-width="1.5"/>';
       const anchor = x > m.l + pw - 76 ? "end" : (x < m.l + 76 ? "start" : "middle");
       const tx = anchor === "end" ? x + 7 : (anchor === "start" ? x - 7 : x);
+      // Label takes the pillar colour so it stays tied to its dot when labels
+      // have been pushed away from it.
       g += '<text x="' + tx.toFixed(1) + '" y="' + ly.toFixed(1) + '" text-anchor="' + anchor +
-           '" font-size="10.5" font-weight="600" fill="#1c1b19">' + esc(SHORT_NAME[d.key]) + '</text>';
+           '" font-size="10.5" font-weight="700" fill="' + col + '">' + esc(SHORT_NAME[d.key]) + '</text>';
     });
 
     return '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Scatter plot of capability against energy for each domain">' + g + '</svg>';
@@ -745,7 +770,7 @@
     // actually varied their answers.
     if (s.spread < 6 && s.energyRange <= 1) {
       return '<div class="caveat" style="margin-top:18px"><b>This map needs more variation to be useful.</b> ' +
-        'You gave close to the same rating across all nine domains, on both capability and energy, so there is nothing ' +
+        'You gave close to the same rating across all twelve domains, on both capability and energy, so there is nothing ' +
         'for it to separate — everything sits in one cluster. That happens for two reasons: either you genuinely are ' +
         'this even, or the scale did not give you enough room to distinguish between things you are good at. ' +
         'If it is the second, the four written questions in Part 3 will tell you far more than the scores did. ' +
@@ -848,7 +873,7 @@
       energyResponses: state.energy,
       reflection: { HS1: state.hs1, HS1_other: state.hs1Other, HS2: state.open.HS2, HS3: state.open.HS3, HS4: state.open.HS4 },
       domainScores: s.domains.map(d => ({
-        key: d.key, name: d.name, category: d.category,
+        key: d.key, name: d.name, pillar: d.pillar,
         itemMean: Math.round(d.mean * 100) / 100, scaledScore: d.pct,
         withinPersonCentred: d.relative, energy: d.energy
       })),
