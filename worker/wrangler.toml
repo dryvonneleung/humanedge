@@ -1,0 +1,16 @@
+name = "haa-value-prop"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+# Optional. Any model id from build.nvidia.com works, since NIM is
+# OpenAI-compatible. Omit to use the default in worker.js.
+[vars]
+MODEL = "meta/llama-3.3-70b-instruct"
+
+# Rate limiting. Create the namespace first:
+#   npx wrangler kv namespace create RATE_LIMIT
+# then paste the printed id below and uncomment. Without this binding the
+# Worker still runs, just with no per-IP limit.
+# [[kv_namespaces]]
+# binding = "RATE_LIMIT"
+# id = "paste-the-id-wrangler-prints-here"

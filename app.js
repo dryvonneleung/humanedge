@@ -504,6 +504,7 @@
           '<div class="a' + (v ? '' : ' empty') + '">' + (v ? esc(v) : "Not answered") + '</div>' +
         '</div>';
     });
+    html += valuePropSection();
     html += '</div>';
 
     /* other profiles */
@@ -546,11 +547,147 @@
     $("#jsonBtn").onclick = () => downloadJson(s);
     $("#csvBtn").onclick = () => downloadCsv(s);
     $("#restartBtn").onclick = restart;
+    wireValueProp(s);
 
     // animate meters
     requestAnimationFrame(() => {
       host.querySelectorAll(".meter-fill").forEach(f => { f.style.width = f.dataset.w + "%"; });
     });
+  }
+
+  /* ---------------- value proposition generator ----------------
+   * Hidden entirely unless LLM_ENDPOINT is configured. Nothing is sent until
+   * the participant presses the button, and they can withhold their free text. */
+  function valuePropSection() {
+    if (!LLM_ENDPOINT) return "";
+    return '' +
+      '<div class="vp" id="vpBlock">' +
+        '<div class="vp-head">' +
+          '<h3>Turn this into how you introduce yourself</h3>' +
+          '<span class="vp-badge">Optional · uses AI</span>' +
+        '</div>' +
+        '<p class="vp-lede">Your profile and your own words, written up as a short introduction you could actually ' +
+        'say out loud. Treat what comes back as a first draft in your voice, not a finished statement — edit it until it sounds like you.</p>' +
+        '<div class="vp-consent">' +
+          '<strong>Nothing is sent until you press the button.</strong> If you do press it, this is what goes: ' +
+          'your twelve scores, your energy ratings, your closest profile, what people come to you for, and — unless you ' +
+          'untick the box — your three written answers. It goes to our server, which passes it to NVIDIA\'s model service ' +
+          'and returns the text. It is not saved anywhere.' +
+        '</div>' +
+        '<label class="chk-inline"><input type="checkbox" id="vpNotes" checked> ' +
+          'Include my written answers <span class="opt-note">(the result is far more specific with them)</span></label>' +
+        '<div class="btn-row" style="margin-top:16px">' +
+          '<button class="btn" id="vpGo">Draft my introduction</button>' +
+        '</div>' +
+        '<div id="vpStatus" class="vp-status" hidden></div>' +
+        '<div id="vpOut"></div>' +
+      '</div>';
+  }
+
+  function wireValueProp(s) {
+    const go = $("#vpGo");
+    if (!go) return;
+    go.addEventListener("click", () => runValueProp(s));
+  }
+
+  function runValueProp(s) {
+    const go = $("#vpGo");
+    const status = $("#vpStatus");
+    const out = $("#vpOut");
+    const includeNotes = $("#vpNotes").checked;
+
+    go.disabled = true;
+    go.textContent = "Writing…";
+    status.hidden = false;
+    status.className = "vp-status";
+    status.textContent = "Sending your profile and waiting for the model. This usually takes a few seconds.";
+    out.innerHTML = "";
+
+    const hs1List = state.hs1.map(x =>
+      x === "Something else" && state.hs1Other.trim() ? state.hs1Other.trim() : x);
+
+    const payload = {
+      v: HAA_VERSION,
+      archetype: s.archetypes[0].name,
+      top: s.signature.map(d => ({ name: d.name, score: Math.round(d.pct), energy: d.energy })),
+      all: s.domains.map(d => ({ name: d.name, score: Math.round(d.pct), energy: d.energy })),
+      quieter: s.quieter.map(d => d.name),
+      helpWith: hs1List,
+      notes: includeNotes ? {
+        flow: (state.open.HS2 || "").trim(),
+        underrated: (state.open.HS3 || "").trim(),
+        notAI: (state.open.HS4 || "").trim()
+      } : { flow: "", underrated: "", notAI: "" }
+    };
+
+    const done = () => { go.disabled = false; go.textContent = "Draft my introduction"; };
+    const fail = msg => {
+      status.className = "vp-status vp-error";
+      status.textContent = msg;
+      done();
+    };
+
+    const timeout = setTimeout(() => controller.abort(), 45000);
+    const controller = new AbortController();
+
+    fetch(LLM_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: controller.signal
+    })
+      .then(r => r.json().then(body => ({ ok: r.ok, body: body })))
+      .then(res => {
+        clearTimeout(timeout);
+        if (!res.ok || !res.body || !res.body.text) {
+          fail((res.body && res.body.error) || "That didn't work. Try again in a moment.");
+          return;
+        }
+        status.hidden = true;
+        out.innerHTML = renderValueProp(res.body.text);
+        out.querySelectorAll("[data-copy]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const target = out.querySelector('#' + btn.dataset.copy);
+            copyText(target.textContent.trim());
+          });
+        });
+        go.textContent = "Write another version";
+        go.disabled = false;
+      })
+      .catch(err => {
+        clearTimeout(timeout);
+        fail(err && err.name === "AbortError"
+          ? "The model took too long to respond. Try again."
+          : "Could not reach the writing service. Check your connection and try again.");
+      });
+  }
+
+  /* The model is asked for three "## Heading" sections. Parse them into cards,
+   * and fall back to showing the raw text if it answered in another shape. */
+  function renderValueProp(text) {
+    const parts = String(text).split(/^##\s+/m).map(p => p.trim()).filter(Boolean);
+    const cards = parts.map((part, i) => {
+      const nl = part.indexOf("\n");
+      if (nl === -1) return null;
+      const heading = part.slice(0, nl).trim();
+      const bodyText = part.slice(nl + 1).trim();
+      if (!bodyText) return null;
+      const id = "vpc" + i;
+      return '<div class="vp-card">' +
+          '<div class="vp-card-head">' +
+            '<span class="vp-card-title">' + esc(heading) + '</span>' +
+            '<button class="btn btn-ghost btn-sm" data-copy="' + id + '">Copy</button>' +
+          '</div>' +
+          '<div class="vp-card-body" id="' + id + '">' + esc(bodyText) + '</div>' +
+        '</div>';
+    }).filter(Boolean);
+
+    if (!cards.length) {
+      return '<div class="vp-card"><div class="vp-card-body" id="vpc0">' + esc(text) + '</div></div>';
+    }
+    return cards.join("") +
+      '<p class="vp-foot">Written by a language model from your answers. It can overstate things and it does not ' +
+      'know your job history — read it critically and cut anything that is not true of you.</p>';
   }
 
   /* Displayed closeness. Uses the same quantity the ranking uses, so a profile
@@ -823,11 +960,12 @@
     return L.join("\n");
   }
 
-  function copySummary(s) {
-    const txt = summaryText(s);
+  function copySummary(s) { copyText(summaryText(s)); }
+
+  function copyText(txt) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(txt).then(
-        () => toast("Summary copied to clipboard"),
+        () => toast("Copied to clipboard"),
         () => fallbackCopy(txt)
       );
     } else fallbackCopy(txt);
@@ -839,7 +977,7 @@
     ta.style.opacity = "0";
     document.body.appendChild(ta);
     ta.select();
-    try { document.execCommand("copy"); toast("Summary copied to clipboard"); }
+    try { document.execCommand("copy"); toast("Copied to clipboard"); }
     catch (e) { toast("Copy failed — use the JSON download instead"); }
     document.body.removeChild(ta);
   }
@@ -993,6 +1131,15 @@
   /* ---------------- wiring ---------------- */
   function init() {
     $("#verLabel").textContent = HAA_VERSION;
+    // Keep the privacy promise honest: the plain version is only true while the
+    // optional generator is switched off.
+    if (LLM_ENDPOINT) {
+      $("#privacyNote").innerHTML =
+        "<strong>Your answers stay on this device.</strong> Everything runs in your browser and is saved only here. " +
+        "The one exception is optional: at the end you can choose to have your profile written up as an introduction, " +
+        "which sends it to an AI service. That only happens if you press the button, and the report explains exactly " +
+        "what would be sent before you do.";
+    }
     renderDomainMap();
     renderItemPage();
     renderEnergy();

@@ -11,6 +11,12 @@ const HAA_VERSION = "0.2-pilot";
  * While it is null, NOTHING leaves the participant's browser. */
 const DATA_COLLECTION_ENDPOINT = null;
 
+/* Optional "draft my value proposition" generator. Set this to your deployed
+ * Cloudflare Worker URL (see worker/README.md) to switch the feature on.
+ * While it is null the section is hidden and no LLM call is ever made.
+ * Never put an API key here — this file is public. */
+const LLM_ENDPOINT = null;
+
 const PILLARS = {
   notice:     { label: "Notice",     blurb: "What you take in" },
   understand: { label: "Understand", blurb: "What you make of it" },

@@ -303,6 +303,44 @@ input[type="text"] {
 .reflect-card .a { white-space: pre-wrap; color: var(--ink); }
 .reflect-card .a.empty { color: var(--ink-3); font-style: italic; }
 
+/* ---------- value proposition generator ---------- */
+.vp {
+  margin-top: 22px; padding: 22px; border-radius: var(--radius-lg);
+  background: var(--surface); border: 1px solid var(--line-2);
+}
+.vp-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 6px; }
+.vp-head h3 { margin: 0; }
+.vp-badge {
+  font-size: .7rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 99px; background: var(--accent-soft);
+  color: var(--accent-ink); border: 1px solid #cddcd6;
+}
+.vp-lede { color: var(--ink-2); font-size: .95rem; margin-bottom: 14px; }
+.vp-consent {
+  background: var(--surface-2); border: 1px solid var(--line);
+  border-left: 3px solid var(--warn); border-radius: 10px;
+  padding: 13px 16px; font-size: .88rem; color: var(--ink-2); margin-bottom: 14px;
+}
+.chk-inline { display: flex; align-items: flex-start; gap: 9px; font-size: .92rem; cursor: pointer; color: var(--ink-2); }
+.chk-inline input { margin-top: 3px; accent-color: var(--accent); width: 16px; height: 16px; }
+.opt-note { color: var(--ink-3); }
+.vp-status {
+  margin-top: 16px; padding: 12px 15px; border-radius: 10px; font-size: .9rem;
+  background: var(--accent-soft); border: 1px solid #cddcd6; color: var(--accent-ink);
+}
+.vp-status.vp-error { background: #fbf0ee; border-color: #e5c4bd; color: #8c3a3a; }
+.vp-card {
+  margin-top: 14px; border: 1px solid var(--line); border-radius: var(--radius);
+  background: var(--surface-2); overflow: hidden;
+}
+.vp-card-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 11px 16px; background: var(--surface); border-bottom: 1px solid var(--line);
+}
+.vp-card-title { font-weight: 650; font-size: .93rem; }
+.vp-card-body { padding: 15px 17px; white-space: pre-wrap; line-height: 1.62; color: var(--ink); }
+.vp-foot { margin: 14px 0 0; font-size: .84rem; color: var(--ink-3); }
+
 .near-miss { display: grid; gap: 8px; margin-top: 12px; }
 .near-row { display: flex; justify-content: space-between; gap: 12px; font-size: .9rem; color: var(--ink-2); padding: 8px 0; border-bottom: 1px solid var(--line); }
 .near-row:last-child { border-bottom: 0; }
