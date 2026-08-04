@@ -1,2 +1,13 @@
 .DS_Store
 .claude/settings.local.json
+
+# Never commit secrets. .dev.vars is where wrangler reads local secrets for
+# `wrangler dev`, so it will contain your NVIDIA_API_KEY if you test locally.
+.dev.vars
+worker/.dev.vars
+.env
+worker/.env
+
+node_modules/
+.wrangler/
+worker/.wrangler/
