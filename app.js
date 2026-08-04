@@ -526,8 +526,8 @@
     html +=
       '<div class="caveat">' +
         '<b>How much to trust this.</b> This is a pilot instrument. Each domain rests on three self-report items, ' +
-        'which is enough for reflection and not enough for a decision you couldn\'t reverse. The 9-domain structure is a ' +
-        'hypothesis — with 300–500 responses, factor analysis will likely collapse it to 6–8 factors. ' +
+        'which is enough for reflection and not enough for a decision you couldn\'t reverse. The 12-domain structure is a ' +
+        'hypothesis — with 300–500 responses, factor analysis will likely collapse it to fewer than twelve. ' +
         'Treat the shape of your profile as the signal and the exact numbers as noise.' +
       '</div>';
 
@@ -563,11 +563,12 @@
     return '' +
       '<div class="vp" id="vpBlock">' +
         '<div class="vp-head">' +
-          '<h3>Turn this into how you introduce yourself</h3>' +
+          '<h3>Your unique strengths and superpower</h3>' +
           '<span class="vp-badge">Optional · uses AI</span>' +
         '</div>' +
-        '<p class="vp-lede">Your profile and your own words, written up as a short introduction you could actually ' +
-        'say out loud. Treat what comes back as a first draft in your voice, not a finished statement — edit it until it sounds like you.</p>' +
+        '<p class="vp-lede">Your profile and your own words, written up as the combination you bring — and the one ' +
+        'sharp thing underneath it. Treat what comes back as a first draft in your voice, not a finished statement: ' +
+        'edit it until it sounds like you, and cut anything that isn\'t true.</p>' +
         '<div class="vp-consent">' +
           '<strong>Nothing is sent until you press the button.</strong> If you do press it, this is what goes: ' +
           'your twelve scores, your energy ratings, your closest profile, what people come to you for, and — unless you ' +
@@ -577,7 +578,7 @@
         '<label class="chk-inline"><input type="checkbox" id="vpNotes" checked> ' +
           'Include my written answers <span class="opt-note">(the result is far more specific with them)</span></label>' +
         '<div class="btn-row" style="margin-top:16px">' +
-          '<button class="btn" id="vpGo">Draft my introduction</button>' +
+          '<button class="btn" id="vpGo">Write up my strengths</button>' +
         '</div>' +
         '<div id="vpStatus" class="vp-status" hidden></div>' +
         '<div id="vpOut"></div>' +
@@ -620,7 +621,7 @@
       } : { flow: "", underrated: "", notAI: "" }
     };
 
-    const done = () => { go.disabled = false; go.textContent = "Draft my introduction"; };
+    const done = () => { go.disabled = false; go.textContent = "Write up my strengths"; };
     const fail = msg => {
       status.className = "vp-status vp-error";
       status.textContent = msg;

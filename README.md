@@ -31,7 +31,7 @@ Deploying is just uploading the files to any static host. This repo is live on G
 | `data.js` | **All instrument content** — pillars, domains, 36 items, energy prompts, reflection items, archetypes |
 | `app.js` | Flow control, scoring, charts, exports |
 | `styles.css` | Styling, including print/PDF rules |
-| `worker/` | Optional Cloudflare Worker for the AI value-proposition generator (off by default) |
+| `worker/` | Optional Cloudflare Worker for the AI strengths write-up (off by default) |
 
 Item wording, domain descriptions and archetypes all live in `data.js`, so revising the instrument after
 piloting doesn't require touching the logic. The app derives everything — page count, chart axes, CSV
@@ -101,11 +101,15 @@ Two cases are called out explicitly rather than papered over:
   HS1 as binary columns, open text, and the matched profile. Append rows across participants to build the
   matrix for factor analysis.
 
-## Optional: AI value-proposition generator
+## Optional: AI strengths write-up
 
-The report can end with a **"Draft my introduction"** button that turns the profile and the participant's own
-written answers into a short first-person introduction, in three registers: a spoken intro, a LinkedIn
-"about" paragraph, and an interview answer.
+The report can end with a **"Write up my strengths"** button that turns the profile and the participant's own
+written answers into three short first-person pieces: **Your unique strengths** (what the combination lets
+them do that people with only one of those strengths cannot), **Your superpower** (one or two sentences
+naming the single sharpest thing about how they work), and **How to say it** (a spoken version).
+
+The prompt insists the superpower be a concrete thing they *do* rather than an adjective, and forbids the
+model from using the word "superpower" in the text itself — the framing is the heading's job, not the copy's.
 
 **Off by default.** `LLM_ENDPOINT` in `data.js` is `null`, which hides the section entirely and makes no
 network calls. Set it to a deployed Worker URL to switch it on — see [`worker/README.md`](worker/README.md).

@@ -1,6 +1,6 @@
-# Value proposition generator — Cloudflare Worker
+# Strengths write-up generator — Cloudflare Worker
 
-Proxies the assessment's "Draft my value proposition" button to NVIDIA NIM so
+Proxies the assessment's "Write up my strengths" button to NVIDIA NIM so
 the API key stays server-side. Free tier covers this comfortably.
 
 ## Why a proxy at all
