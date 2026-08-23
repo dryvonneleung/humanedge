@@ -182,17 +182,41 @@ This is a pilot instrument, not a validated test, and the report says so where t
 
 - Three self-report items per domain is thin. Expect low reliability on individual domains.
 - The 12-domain structure is a hypothesis. With 300–500 responses, run EFA and expect fewer factors than 12.
-  Specific pairs worth watching, because their items are near-synonymous as written:
-  - **Observation and Signal Awareness** — conceptually adjacent, both about noticing, likely to merge.
-  - **J2** ("I remain calm when making important decisions") and **PP2** ("I remain calm in stressful
-    situations") — near-duplicate wording across two different domains; expect cross-loading.
-  - **HU2** ("People often come to me for advice or support") and **J3** ("People often trust my advice in
-    difficult situations") — same behaviour, two domains.
-  - **AD3** ("I remain effective even when things are uncertain") overlaps both Judgment and Performance.
+  The near-synonymous pairs listed here previously (J2/PP2, HU2/J3, AD3 spanning Judgment and Performance)
+  were resolved in the v0.2 item revision. What remains worth watching:
+  - **Observation and Signal Awareness** — conceptually adjacent, both about noticing, still the likeliest
+    merge. Mitigated but not eliminated: OB is now anchored to concrete present detail (a room, physical
+    detail) and SA to change over time and pre-evidential signal. Whether respondents honour that distinction
+    is an empirical question.
+  - **IN3** ("I can help people with different backgrounds understand each other") and **M2** ("I help people
+    find common ground when they disagree") — translation across frames versus resolving conflict. Defensibly
+    distinct, close enough to cross-load.
+  - **J1** ("decisions when I do not have all the information") and **PP3** / **AD3** — all three involve
+    acting without complete footing. Separated by what is missing: information for J, time for PP, a working
+    plan for AD.
+  - **C3** ("bothers me to hand over work that is only good enough") and **E3** ("why one version works
+    better than another") — a quality standard versus the taste that detects the gap.
 - Scores are ipsative in practice (interpreted relative to the respondent's own mean) because there is no
   norm group yet. Once you have a sample, the 0–100 scores can be replaced with percentiles.
 - All items are positively keyed, so acquiescence bias inflates everything uniformly. Within-person centring
   and the energy measure are the current mitigations; a few reverse-keyed items would be a cheap improvement.
+  `computeScores()` takes a plain mean, so supporting them is a `rev: true` flag on the item plus one `6 - v`
+  transform. Raw responses are stored unmodified, so exports stay correct either way. Two would be enough —
+  more and the reverse items tend to form their own method factor.
+- **Item wording is now capability, not enjoyment.** Seven items in v0.1 were phrased "I enjoy…", three of
+  them near-verbatim restatements of that domain's own energy prompt. That confounded the two axes of the
+  headline output: if the strength scale partly measures energy, Strength × Energy correlates artificially,
+  inflating the Core edge and Design around quadrants while emptying Costly strength and Growth fuel — the
+  off-diagonal cells where the interesting reading lives. Keep new items phrased as capability or behaviour
+  and leave enjoyment to Part 2.
+- **Four items in v0.1 were phrased "People often …"** (come to me for advice, ask me to explain, trust my
+  advice, listen to my ideas). Beyond duplicating each other, reputation items measure received social
+  feedback and role seniority as much as capability, and a block of identically-worded items tends to form
+  its own method factor. All four are now first-person behaviour.
+- **Two item types to keep out.** Trait self-labels ("attention to detail is one of my strengths") invite
+  near-universal endorsement, and self-assessed accuracy ("my instincts are often correct") asks for a hit
+  rate that self-report cannot supply — hunches that landed are remembered and the rest are not. Calibration,
+  if it is wanted, comes from the decision log in Judgment's `growWith`, not from a scale item.
 - Archetype thresholds and the +5 overlap bonus are judgement calls, not fitted parameters.
 - v0.1 had a **Quiet Specialist** archetype (Craftsmanship + Sense-Making + low Mobilization) that the v0.2
   archetype list doesn't include. Nothing in the scoring requires it, but a depth-oriented, low-influence
