@@ -197,7 +197,7 @@ const ITEMS = [
   { id: "AD1", d: "AD", text: "I adjust quickly when circumstances change." },
   { id: "HU1", d: "HU", text: "I can usually tell how someone is feeling." },
   { id: "J1",  d: "J",  text: "I can make decisions even when I do not have all the information." },
-  { id: "C1",  d: "C",  text: "I take pride in producing high-quality work." },
+  { id: "C1",  d: "C",  text: "I keep working on something after the point where most people would stop." },
   { id: "PP1", d: "PP", text: "I stay focused when there is a lot happening around me." },
 
   { id: "SA2", d: "SA", text: "I can pick up on subtle changes in people or situations." },
