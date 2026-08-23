@@ -219,9 +219,9 @@ const ITEMS = [
   { id: "PP3", d: "PP", text: "I can react quickly without panicking." },
   { id: "OB3", d: "OB", text: "I notice small physical details even when I am not looking for them." },
   { id: "J3",  d: "J",  text: "People often trust my advice in difficult situations." },
-  { id: "C3",  d: "C",  text: "Attention to detail is one of my strengths." },
+  { id: "C3",  d: "C",  text: "It bothers me to hand over work that is only good enough." },
   { id: "M3",  d: "M",  text: "People often listen when I share my ideas." },
-  { id: "SA3", d: "SA", text: "My instincts about people or situations are often correct." },
+  { id: "SA3", d: "SA", text: "I act on my hunches." },
   { id: "SM3", d: "SM", text: "People often ask me to explain complicated things." },
   { id: "IV3", d: "IV", text: "I regularly come up with ideas others have not considered." },
   { id: "AD3", d: "AD", text: "I remain effective even when things are uncertain." }
