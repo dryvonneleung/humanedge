@@ -165,3 +165,6 @@ This is a pilot instrument, not a validated test, and the report says so where t
 - v0.1 had a **Quiet Specialist** archetype (Craftsmanship + Sense-Making + low Mobilization) that the v0.2
   archetype list doesn't include. Nothing in the scoring requires it, but a depth-oriented, low-influence
   respondent now matches no archetype especially well.
+
+  Please access the webapp from this link: https://dryvonneleung.github.io/humanedge/
+  
