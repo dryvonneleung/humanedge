@@ -6,9 +6,19 @@
 
 const HAA_VERSION = "0.2-pilot";
 
-/* If you later want responses posted to a collector (for the 300–500 response
- * factor analysis), set this to an https endpoint that accepts a JSON POST.
- * While it is null, NOTHING leaves the participant's browser. */
+/* Pooled response collection, for refining the instrument. Set this to the
+ * /collect route of your deployed Worker — e.g.
+ * "https://haa-value-prop.<subdomain>.workers.dev/collect" — and each completed
+ * assessment is stored in the D1 database. See worker/README.md.
+ *
+ * Scored data only: item responses, energy ratings, domain means, HS1 and the
+ * matched profile. The open-text answers are never sent.
+ *
+ * While it is null, NOTHING leaves the participant's browser. Turning it on
+ * rewrites the privacy bullet on the landing page automatically, so the
+ * "nothing is sent anywhere" promise is never shown while collection is live.
+ * That rewrite is notice, not consent — see the collection section of
+ * README.md before switching this on. */
 const DATA_COLLECTION_ENDPOINT = null;
 
 /* Optional "draft my value proposition" generator. Set this to your deployed

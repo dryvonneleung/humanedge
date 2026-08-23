@@ -6,6 +6,7 @@
   "use strict";
 
   const STORE_KEY = "haa-response-" + HAA_VERSION;
+  const SUBMISSION_KEY = "haa-submission-" + HAA_VERSION;
   const ITEMS_PER_PAGE = 6;
   const TOTAL_QUESTIONS = ITEMS.length + DOMAIN_ORDER.length; // 36 + 12
 
@@ -83,6 +84,9 @@
   }
   function clearSaved() {
     try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+    // Drop the submission id too, so a retake is collected as a new response
+    // rather than being deduplicated against the answers it replaced.
+    try { localStorage.removeItem(SUBMISSION_KEY); } catch (e) {}
   }
 
   /* ---------------- navigation ---------------- */
@@ -1049,22 +1053,71 @@
       head.map(q).join(",") + "\r\n" + row.map(q).join(",") + "\r\n", "text/csv;charset=utf-8");
   }
 
-  /* Optional pooled collection — off unless an endpoint is configured in data.js. */
+  /* Optional pooled collection — off unless an endpoint is configured in data.js.
+   *
+   * Scored data only: item responses, energy ratings, domain means, the HS1
+   * selections as a binary vector, and the matched profile. The three open-text
+   * answers and hs1Other are deliberately not included — an open box is where
+   * someone types their own name.
+   *
+   * Fire-and-forget by design. Every failure path here is swallowed, because a
+   * participant's report must not depend on a collector being up. */
   function maybePost(s) {
     if (!DATA_COLLECTION_ENDPOINT) return;
     try {
+      // One id per set of answers, held in localStorage alongside the answers,
+      // so walking back through Part 3 and pressing Continue again is a no-op
+      // server-side rather than a second row in the analysis matrix.
+      const submissionId = submissionKey();
+
+      const domainMeans = {};
+      DOMAIN_ORDER.forEach(k => {
+        domainMeans[k] = Math.round(s.byKey(k).mean * 100) / 100;
+      });
+
+      const started = state.startedAt ? Date.parse(state.startedAt) : NaN;
+      const durationSec = Number.isFinite(started)
+        ? Math.max(0, Math.round((Date.now() - started) / 1000)) : null;
+
       fetch(DATA_COLLECTION_ENDPOINT, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        // Survives the page being closed the instant the report renders, which
+        // a plain fetch does not guarantee.
+        keepalive: true,
         body: JSON.stringify({
+          submissionId: submissionId,
           version: HAA_VERSION,
           completedAt: new Date().toISOString(),
+          durationSec: durationSec,
           items: state.answers,
           energy: state.energy,
-          hs1: state.hs1
+          domainMeans: domainMeans,
+          // Binary vector over HS1_OPTIONS, same column layout as the CSV export.
+          hs1: HS1_OPTIONS.map(o => state.hs1.indexOf(o) !== -1 ? 1 : 0),
+          archetype: s.archetypes[0].id,
+          // Lets the collector mark completeness without hardcoding a count.
+          expectedItems: ITEMS.length
         })
       }).catch(() => {});
     } catch (e) { /* never block the report */ }
+  }
+
+  /* Stable per-attempt id. Cleared by restart() along with everything else, so
+   * a genuine retake counts as a new response rather than overwriting the last. */
+  function submissionKey() {
+    try {
+      let id = localStorage.getItem(SUBMISSION_KEY);
+      if (!id) {
+        id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : String(Date.now()) + "-" +
+          Math.random().toString(16).slice(2, 10);
+        localStorage.setItem(SUBMISSION_KEY, id);
+      }
+      return id;
+    } catch (e) {
+      // Private browsing with storage blocked. A duplicate row beats no row.
+      return String(Date.now()) + "-" + Math.random().toString(16).slice(2, 10);
+    }
   }
 
   function restart() {
@@ -1129,18 +1182,46 @@
     }
   }
 
-  /* ---------------- wiring ---------------- */
-  function init() {
-    $("#verLabel").textContent = HAA_VERSION;
-    // Keep the privacy promise honest: the plain version is only true while the
-    // optional generator is switched off.
+  /* Keep the privacy promise honest. The "Nothing is sent anywhere" copy in
+   * index.html is only true while both optional features are off, and the
+   * collector is the case that matters: unlike the write-up, it fires without
+   * the participant pressing anything, so the disclosure has to be on the
+   * landing page rather than next to a button.
+   *
+   * This is notice, not consent: it tells participants what happens without
+   * asking them, and the only way to decline is to close the tab. */
+  function setPrivacyNote() {
+    const el = $("#privacyNote");
+    if (!el) return;
+
+    const aiSentence =
+      "You can also choose, at the end, to have your profile written up as an introduction, which sends it to " +
+      "an AI service. That only happens if you press the button, and the report explains exactly what would be " +
+      "sent before you do.";
+
+    if (DATA_COLLECTION_ENDPOINT) {
+      el.innerHTML =
+        "<strong>Your answers are collected to improve this assessment.</strong> They are saved on this device, " +
+        "and a copy is sent when your report is generated, so the questions can be refined. " +
+        "Only the numbers are sent — your ratings, not anything you write in your own words, which stays on this " +
+        "device. Nothing sent identifies you: no name, no email, no login." +
+        (LLM_ENDPOINT ? " " + aiSentence : "");
+      return;
+    }
+
     if (LLM_ENDPOINT) {
-      $("#privacyNote").innerHTML =
+      el.innerHTML =
         "<strong>Your answers stay on this device.</strong> Everything runs in your browser and is saved only here. " +
         "The one exception is optional: at the end you can choose to have your profile written up as an introduction, " +
         "which sends it to an AI service. That only happens if you press the button, and the report explains exactly " +
         "what would be sent before you do.";
     }
+  }
+
+  /* ---------------- wiring ---------------- */
+  function init() {
+    $("#verLabel").textContent = HAA_VERSION;
+    setPrivacyNote();
     renderDomainMap();
     renderItemPage();
     renderEnergy();

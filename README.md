@@ -31,7 +31,7 @@ Deploying is just uploading the files to any static host. This repo is live on G
 | `data.js` | **All instrument content** — pillars, domains, 36 items, energy prompts, reflection items, archetypes |
 | `app.js` | Flow control, scoring, charts, exports |
 | `styles.css` | Styling, including print/PDF rules |
-| `worker/` | Optional Cloudflare Worker for the AI strengths write-up (off by default) |
+| `worker/` | Optional Cloudflare Worker — AI strengths write-up and response collection (both off by default) |
 
 Item wording, domain descriptions and archetypes all live in `data.js`, so revising the instrument after
 piloting doesn't require touching the logic. The app derives everything — page count, chart axes, CSV
@@ -135,14 +135,46 @@ and pointing `NIM_URL` at a self-hosted NIM container keeps participant data on 
 
 ## Collecting the 300–500 responses
 
-Nothing leaves the browser by default. `DATA_COLLECTION_ENDPOINT` at the top of `data.js` is `null`; set it
-to an HTTPS endpoint accepting a JSON `POST` and each completed assessment will be submitted when the report
-is generated (item responses, energy ratings and HS1 only — no open text). Posting is fire-and-forget and can
-never block or break the report.
+Nothing leaves the browser by default. `DATA_COLLECTION_ENDPOINT` at the top of `data.js` is `null`; set it to
+the `/collect` route of the deployed Worker and each completed assessment is stored in a **Cloudflare D1**
+database when the report is generated. Setup is four commands — see
+[`worker/README.md`](worker/README.md#part-2--response-collection).
 
-Before turning that on: participants need to be told collection is happening, the landing copy currently
-promises the opposite and must be updated to match, and if this runs at Northeastern with identifiable
-participants it is human-subjects research and needs IRB review.
+**What is sent:** the 36 item responses, 12 energy ratings, 12 domain means, HS1 as a binary vector, the
+matched profile, version, timestamps and completion time. Plus a truncated SHA-256 of the IP (so one person
+submitting forty times is detectable without storing an address) and Cloudflare's two-letter country code.
+
+**What is not:** the three open-text answers and the HS1 "something else" box. The client never sends them and
+the schema has no column for them — text you don't collect is text you can't leak. No name, email or login is
+collected anywhere in the app.
+
+Posting is fire-and-forget with `keepalive`, so it survives the tab closing and can never block or break the
+report. Each attempt carries a UUID and the insert is `INSERT OR IGNORE`, so reloading the report doesn't
+produce duplicate rows. Retrieve the pooled data as the same wide matrix the client-side CSV export produces:
+
+```bash
+curl -H "Authorization: Bearer YOUR_EXPORT_TOKEN" "https://YOUR-WORKER.workers.dev/export.csv?complete=1" -o haa-responses.csv
+```
+
+Before turning it on:
+
+1. **Check the participant-facing copy.** Setting the endpoint rewrites the landing page's privacy bullet
+   automatically (`setPrivacyNote()` in `app.js`), so the "Nothing is sent anywhere" promise is never shown while
+   collection is live. But that is **notice, not consent** — it tells participants what is happening without
+   asking them, and the only way to decline is to close the tab.
+2. **Know what "anonymous" covers.** The IP hash and country code are the only fields resembling identifiers,
+   and a truncated hash of an IP is *pseudonymous* rather than anonymous — the input space is small enough to
+   brute-force. Either describe them accurately or drop them (four lines in `handleCollect`, two columns in
+   `schema.sql`). Dropping them costs the ability to detect one person submitting forty times, which matters for
+   data quality in an open web sample.
+3. **Test the pipeline locally** against a local database, so no live responses depend on a first deploy working.
+4. **Watch `/stats` during a session, not after.** Because collection can never break the report, a broken
+   collector is silent — participants see nothing wrong and the responses are simply gone.
+
+`worker/test/` covers the sanitizer and the CSV export, and runs with no dependencies. Run
+`instrument.test.js` after editing `ITEMS`, `DOMAIN_ORDER` or `HS1_OPTIONS`: the collector whitelists keys by
+pattern, so an item id in an unexpected shape would be dropped silently and go missing from the export rather
+than failing loudly.
 
 ## Known limits
 

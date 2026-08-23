@@ -14,3 +14,17 @@ MODEL = "meta/llama-3.3-70b-instruct"
 # [[kv_namespaces]]
 # binding = "RATE_LIMIT"
 # id = "paste-the-id-wrangler-prints-here"
+
+# Response collection (POST /collect, GET /export.csv). Create the database:
+#   npx wrangler d1 create haa-responses
+# paste the printed database_id below, uncomment, then create the table:
+#   npx wrangler d1 execute haa-responses --remote --file=./schema.sql
+# Without this binding /collect returns 503 and the rest of the Worker is
+# unaffected.
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "haa-responses"
+# database_id = "paste-the-id-wrangler-prints-here"
+
+# The export endpoint needs a token. Never put it here — this file is committed.
+#   openssl rand -hex 32 | npx wrangler secret put EXPORT_TOKEN
