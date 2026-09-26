@@ -7,24 +7,23 @@ compatibility_date = "2025-01-01"
 [vars]
 MODEL = "meta/llama-3.3-70b-instruct"
 
-# Rate limiting. Create the namespace first:
+# Rate limiting for both the write-up and /collect. Ids are not secrets — they
+# identify the namespace, they do not grant access to it.
 #   npx wrangler kv namespace create RATE_LIMIT
-# then paste the printed id below and uncomment. Without this binding the
-# Worker still runs, just with no per-IP limit.
-# [[kv_namespaces]]
-# binding = "RATE_LIMIT"
-# id = "paste-the-id-wrangler-prints-here"
+# Without this binding the Worker still runs, just with no per-IP limit.
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "fab35b21167e49a98d9824f6612bc795"
 
-# Response collection (POST /collect, GET /export.csv). Create the database:
+# Response collection (POST /collect, GET /export.csv, GET /stats).
 #   npx wrangler d1 create haa-responses
-# paste the printed database_id below, uncomment, then create the table:
 #   npx wrangler d1 execute haa-responses --remote --file=./schema.sql
 # Without this binding /collect returns 503 and the rest of the Worker is
 # unaffected.
-# [[d1_databases]]
-# binding = "DB"
-# database_name = "haa-responses"
-# database_id = "paste-the-id-wrangler-prints-here"
+[[d1_databases]]
+binding = "DB"
+database_name = "haa-responses"
+database_id = "473af6fd-9729-4b11-a65a-79bc78556e9d"
 
 # The export endpoint needs a token. Never put it here — this file is committed.
 #   openssl rand -hex 32 | npx wrangler secret put EXPORT_TOKEN

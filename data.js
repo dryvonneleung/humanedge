@@ -19,7 +19,7 @@ const HAA_VERSION = "0.2-pilot";
  * "nothing is sent anywhere" promise is never shown while collection is live.
  * That rewrite is notice, not consent — see the collection section of
  * README.md before switching this on. */
-const DATA_COLLECTION_ENDPOINT = null;
+const DATA_COLLECTION_ENDPOINT = "https://haa-value-prop.yvonnewleung.workers.dev/collect";
 
 /* Optional "draft my value proposition" generator. Set this to your deployed
  * Cloudflare Worker URL (see worker/README.md) to switch the feature on.
