@@ -198,7 +198,7 @@ Complete responses only, which is what you want for factor analysis:
 curl -H "Authorization: Bearer YOUR_EXPORT_TOKEN" "https://YOUR-WORKER.workers.dev/export.csv?complete=1" -o haa-responses.csv
 ```
 
-`?version=0.2-pilot` filters to one instrument version — worth using, because
+`?version=0.3-pilot` filters to one instrument version — worth using, because
 pooling responses across versions where item wording changed is exactly the
 mistake that makes an EFA meaningless.
 
@@ -277,7 +277,7 @@ cd worker && npx wrangler d1 execute haa-responses --local --file=./schema.sql &
 ```
 
 ```bash
-curl -sS -X POST http://localhost:8787/collect -H "Content-Type: application/json" -H "Origin: http://localhost:8791" -d '{"submissionId":"11111111-2222-3333-4444-555555555555","version":"0.2-pilot","completedAt":"2026-01-01T00:00:00Z","durationSec":600,"items":{"OB1":4,"SA1":3},"energy":{"OB":4},"domainMeans":{"OB":4.33},"hs1":[1,0,0],"archetype":"trusted-guide","expectedItems":36}'
+curl -sS -X POST http://localhost:8787/collect -H "Content-Type: application/json" -H "Origin: http://localhost:8791" -d '{"submissionId":"11111111-2222-3333-4444-555555555555","version":"0.3-pilot","completedAt":"2026-01-01T00:00:00Z","durationSec":600,"items":{"OB1":4,"SA1":3},"energy":{"OB":4},"domainMeans":{"OB":4.33},"hs1":[1,0,0],"archetype":"trusted-guide","expectedItems":36}'
 ```
 
 Expect `{"stored":true}`. Send it twice — the second is a no-op, and

@@ -4,7 +4,7 @@
  * Kept separate from app logic so items can be revised after factor analysis.
  */
 
-const HAA_VERSION = "0.2-pilot";
+const HAA_VERSION = "0.3-pilot";
 
 /* Pooled response collection, for refining the instrument. Set this to the
  * /collect route of your deployed Worker — e.g.

@@ -51,7 +51,7 @@ editing `data.js` only.
 
 Keyboard `1`–`5` answers the current item and advances. Progress autosaves to `localStorage` after every
 answer, and a "Resume where I left off" button appears on return, jumping to the first incomplete part.
-The storage key includes the version, so a v0.1 response in someone's browser won't be resumed into v0.2.
+The storage key includes the version, so a v0.2 response in someone's browser won't be resumed into v0.3.
 
 ## Scoring
 
@@ -183,7 +183,7 @@ This is a pilot instrument, not a validated test, and the report says so where t
 - Three self-report items per domain is thin. Expect low reliability on individual domains.
 - The 12-domain structure is a hypothesis. With 300–500 responses, run EFA and expect fewer factors than 12.
   The near-synonymous pairs listed here previously (J2/PP2, HU2/J3, AD3 spanning Judgment and Performance)
-  were resolved in the v0.2 item revision. What remains worth watching:
+  were resolved in the v0.3 item revision. What remains worth watching:
   - **Observation and Signal Awareness** — conceptually adjacent, both about noticing, still the likeliest
     merge. Mitigated but not eliminated: OB is now anchored to concrete present detail (a room, physical
     detail) and SA to change over time and pre-evidential signal. Whether respondents honour that distinction
@@ -203,13 +203,13 @@ This is a pilot instrument, not a validated test, and the report says so where t
   `computeScores()` takes a plain mean, so supporting them is a `rev: true` flag on the item plus one `6 - v`
   transform. Raw responses are stored unmodified, so exports stay correct either way. Two would be enough —
   more and the reverse items tend to form their own method factor.
-- **Item wording is now capability, not enjoyment.** Seven items in v0.1 were phrased "I enjoy…", three of
+- **Item wording is now capability, not enjoyment.** Seven items in v0.2 were phrased "I enjoy…", three of
   them near-verbatim restatements of that domain's own energy prompt. That confounded the two axes of the
   headline output: if the strength scale partly measures energy, Strength × Energy correlates artificially,
   inflating the Core edge and Design around quadrants while emptying Costly strength and Growth fuel — the
   off-diagonal cells where the interesting reading lives. Keep new items phrased as capability or behaviour
   and leave enjoyment to Part 2.
-- **Four items in v0.1 were phrased "People often …"** (come to me for advice, ask me to explain, trust my
+- **Four items in v0.2 were phrased "People often …"** (come to me for advice, ask me to explain, trust my
   advice, listen to my ideas). Beyond duplicating each other, reputation items measure received social
   feedback and role seniority as much as capability, and a block of identically-worded items tends to form
   its own method factor. All four are now first-person behaviour.
