@@ -218,7 +218,7 @@ const ITEMS = [
   { id: "E3",  d: "E",  text: "I can tell why one version of something works better than another." },
   { id: "PP3", d: "PP", text: "I recover quickly when something goes wrong in the moment." },
   { id: "OB3", d: "OB", text: "I notice small physical details even when I am not looking for them." },
-  { id: "J3",  d: "J",  text: "I know when I am out of my depth." },
+  { id: "J3",  d: "J",  text: "I take responsibility for decisions that turn out badly." },
   { id: "C3",  d: "C",  text: "It bothers me to hand over work that is only good enough." },
   { id: "M3",  d: "M",  text: "I can get a group to commit to a decision, not just agree with it." },
   { id: "SA3", d: "SA", text: "I act on my hunches." },
