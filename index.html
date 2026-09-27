@@ -134,7 +134,13 @@
 
 <div class="toast" id="toast"></div>
 
-<script src="data.js"></script>
-<script src="app.js"></script>
+<!-- The ?v= must match HAA_VERSION in data.js. GitHub Pages serves these with
+     cache-control: max-age=600, and a tab left open holds its copy for as long
+     as it stays open — so without this, a version bump reaches returning
+     visitors late and their responses are filed under the previous version.
+     That is not hypothetical: it happened on the 0.2 -> 0.3 bump.
+     app.js warns in the console if this drifts out of sync. -->
+<script src="data.js?v=0.3-pilot"></script>
+<script src="app.js?v=0.3-pilot"></script>
 </body>
 </html>

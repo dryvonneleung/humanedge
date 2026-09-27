@@ -1218,9 +1218,38 @@
     }
   }
 
+  /* The script tags in index.html carry ?v=<version> so that bumping
+   * HAA_VERSION forces browsers to refetch instead of running a cached copy of
+   * the previous instrument. That only works if the two are kept in step, and
+   * nothing enforces it — so check, and say so loudly when they drift.
+   *
+   * Worth the noise because the failure is silent and lands in the data: a
+   * stale tab still submits, still shows a normal report, and the response is
+   * filed under whatever version its cached data.js declared. That is exactly
+   * what happened on the 0.2 -> 0.3 bump. */
+  function warnIfCacheBustStale() {
+    try {
+      const tag = document.querySelector('script[src^="data.js"]');
+      if (!tag) return;
+      const m = /[?&]v=([^&]+)/.exec(tag.getAttribute("src") || "");
+      if (!m) {
+        console.warn("[HAA] data.js is loaded without a ?v= cache-buster. A version bump " +
+          "will reach returning visitors late, and their responses will be filed under the " +
+          "previous version. Add ?v=" + HAA_VERSION + " in index.html.");
+        return;
+      }
+      if (decodeURIComponent(m[1]) !== HAA_VERSION) {
+        console.warn("[HAA] Cache-buster is stale: index.html requests data.js?v=" + m[1] +
+          ' but HAA_VERSION is "' + HAA_VERSION + '". Update the script tags in index.html ' +
+          "to match, or returning visitors keep running the older instrument.");
+      }
+    } catch (e) { /* never let a diagnostic break the assessment */ }
+  }
+
   /* ---------------- wiring ---------------- */
   function init() {
     $("#verLabel").textContent = HAA_VERSION;
+    warnIfCacheBustStale();
     setPrivacyNote();
     renderDomainMap();
     renderItemPage();
